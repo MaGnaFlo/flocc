@@ -1,0 +1,1 @@
+docker run --rm -it -v $(pwd):/src -w /src x86dev
