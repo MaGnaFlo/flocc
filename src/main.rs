@@ -9,6 +9,8 @@ fn main() {
     let filepath = &args[1];
     let mut file_content = fs::read_to_string(filepath).expect("Couldn't read file.");
 
-    let tokens = lexer::tokenize(&mut file_content);
-    lexer::print_tokens(&tokens);
+    match lexer::tokenize(&mut file_content) {
+        Some(tokens) => lexer::print_tokens(&tokens),
+        None => panic!("Wow! Can't lex that!"),
+    }
 }
