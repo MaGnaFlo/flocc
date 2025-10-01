@@ -1,1 +1,1 @@
-docker run --rm -it -v $(pwd):/src -w /src x86dev
+docker run -it -v $(pwd):/src -w /src x86linux

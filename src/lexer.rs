@@ -13,57 +13,64 @@ pub enum Token {
     Semicolon,
 }
 
-pub fn tokenize(input: &mut String) -> Option<Vec<Token>> {
+pub fn tokenize(input: String) -> Option<Vec<Token>> {
+    let mut content = input;
+
     let re_open_par = Regex::new(r"\(").unwrap();
     let re_close_par = Regex::new(r"\)").unwrap();
     let re_open_brace = Regex::new(r"\{").unwrap();
     let re_close_brace = Regex::new(r"\}").unwrap();
     let re_semi_colon = Regex::new(r";").unwrap();
-    let re_keyword = Regex::new(r"return\b|int|void\b").unwrap();
-    let re_identifier = Regex::new(r"[a-zA-Z_]\w*\b").unwrap();
+    let re_keyword = Regex::new(r"return|int|void").unwrap();
+    let re_identifier = Regex::new(r"[a-zA-Z_]\w*").unwrap();
     let re_constant = Regex::new(r"[0-9]+").unwrap();
 
+    // order is important: prioritize keywords
     let regex_list = vec![
+        (Token::Keyword(String::new()), re_keyword),
+        (Token::Identifier(String::new()), re_identifier),
+        (Token::Constant(0), re_constant),
         (Token::OpenPar, re_open_par),
         (Token::ClosePar, re_close_par),
         (Token::OpenBrace, re_open_brace),
         (Token::CloseBrace, re_close_brace),
         (Token::Semicolon, re_semi_colon),
-        (Token::Identifier(String::new()), re_identifier),
-        (Token::Keyword(String::new()), re_keyword),
-        (Token::Constant(0), re_constant),
     ];
+
 
     // the general idea is to find the first match of all regex matches
     // then we trim the input accordingly, moving the cursor
     let mut tokens = Vec::<Token>::new();
-    while !input.is_empty() {
-        *input = input.trim().to_string();
+    while !content.is_empty() {
+        content = content.trim().to_string();
+
         let mut token_candidate = (Token::Semicolon, String::new());
-        let mut pos_min = usize::MAX;
         let mut found_token = false;
+
         for (token, re) in &regex_list {
-            let Some(m) = re.captures(&input) else {
+            let Some(m) = re.captures(&content) else {
                 continue;
             };
-            let pos = m.get(0).unwrap().start();
-            if pos < pos_min {
-                token_candidate.0 = token.clone();
-                token_candidate.1 = String::from_str(&m[0]).unwrap();
-                pos_min = pos;
+
+            match m.get(0) {
+                Some(value) => {
+                    if value.start() == 0 {
+                        token_candidate.0 = token.clone();
+                        token_candidate.1 = String::from_str(&m[0]).unwrap();
+                        found_token = true;
+                        break;
+                    }
+                },
+                None => continue
             }
-            found_token = true;
         }
+
         if !found_token {
             println!("Error: no match!");
             return None;
         }
-        if pos_min != 0 {
-            println!("Error: unknown token!");
-            return None;
-        }
 
-        *input = input[token_candidate.1.len()..].to_string();
+        content = content[token_candidate.1.len()..].to_string();
 
         let token_ = match token_candidate.0 {
             Token::Constant(_) => Token::Constant(token_candidate.1.parse::<i32>().unwrap()),
@@ -80,7 +87,7 @@ pub fn tokenize(input: &mut String) -> Option<Vec<Token>> {
     return Some(tokens);
 }
 
-pub fn print_tokens(tokens: &Vec<Token>) {
+pub fn print_tokens(tokens: &[Token]) {
     for token in tokens {
         match token {
             Token::Constant(n) => println!("Constant({n})"),
