@@ -1,0 +1,40 @@
+#!/bin/bash
+
+if [[ $# -lt 1 ]]; then
+  usage
+fi
+
+set -euo pipefail
+
+if [[ $# -eq 1 ]]; then
+  FILENAME="$1"
+  if [[ ! -f "$FILENAME" ]]; then
+    echo "Error: File '$FILENAME' not found."
+    exit 1
+  fi
+  echo "Default action on file: $FILENAME"
+
+  # 1. preprocess file
+  gcc -E -P "$FILENAME" -o preprocessed.i
+
+  # 2. convert to assembly
+  # TODO
+  rm preprocessed.i
+
+  # 3. assemble and link
+  gcc assembled.s -o output
+  # rm assembled.s
+  
+  exit 0
+fi
+
+# whatever
+if [[ $# -eq 2 ]]; then
+  OPTION="$1"
+  FILENAME="$2"
+
+  if [[ ! -f "$FILENAME" ]]; then
+    echo "Error: File '$FILENAME' not found."
+    exit 1
+  fi
+if
