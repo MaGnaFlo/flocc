@@ -11,6 +11,7 @@ pub enum Token {
     OpenBrace,
     CloseBrace,
     Semicolon,
+    Operator(String)
 }
 
 pub fn tokenize(input: String) -> Option<Vec<Token>> {
@@ -21,9 +22,10 @@ pub fn tokenize(input: String) -> Option<Vec<Token>> {
     let re_open_brace = Regex::new(r"\{").unwrap();
     let re_close_brace = Regex::new(r"\}").unwrap();
     let re_semi_colon = Regex::new(r";").unwrap();
-    let re_keyword = Regex::new(r"return|int|void").unwrap();
+    let re_keyword = Regex::new(r"return|int|void|if|else|for|while").unwrap();
     let re_identifier = Regex::new(r"[a-zA-Z_]\w*").unwrap();
     let re_constant = Regex::new(r"[0-9]+").unwrap();
+    let re_operator = Regex::new(r"[+|-|=|*|/|==|!=|<|>|<=|>=]").unwrap();
 
     // order is important: prioritize keywords
     let regex_list = vec![
@@ -35,8 +37,8 @@ pub fn tokenize(input: String) -> Option<Vec<Token>> {
         (Token::OpenBrace, re_open_brace),
         (Token::CloseBrace, re_close_brace),
         (Token::Semicolon, re_semi_colon),
+        (Token::Operator(String::new()), re_operator),
     ];
-
 
     // the general idea is to find the first match of all regex matches
     // then we trim the input accordingly, moving the cursor
@@ -54,7 +56,7 @@ pub fn tokenize(input: String) -> Option<Vec<Token>> {
 
             match m.get(0) {
                 Some(value) => {
-                    if value.start() == 0 {
+                    if value.start() == 0 && value.len() > 0 {
                         token_candidate.0 = token.clone();
                         token_candidate.1 = String::from_str(&m[0]).unwrap();
                         found_token = true;
@@ -64,7 +66,7 @@ pub fn tokenize(input: String) -> Option<Vec<Token>> {
                 None => continue
             }
         }
-
+    
         if !found_token {
             println!("Error: no match!");
             return None;
@@ -81,6 +83,7 @@ pub fn tokenize(input: String) -> Option<Vec<Token>> {
             Token::OpenPar => Token::OpenPar,
             Token::ClosePar => Token::ClosePar,
             Token::Semicolon => Token::Semicolon,
+            Token::Operator(_) => Token::Operator(token_candidate.1),
         };
         tokens.push(token_);
     }
@@ -98,6 +101,7 @@ pub fn print_tokens(tokens: &[Token]) {
             Token::OpenPar => println!("("),
             Token::ClosePar => println!(")"),
             Token::Semicolon => println!(";"),
+            Token::Operator(op) => println!("Operator({op})"),
         }
     }
 }
