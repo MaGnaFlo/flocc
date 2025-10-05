@@ -2,6 +2,7 @@ use std::env;
 use std::fs;
 
 mod lexer;
+mod ast;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -10,7 +11,17 @@ fn main() {
     let file_content = fs::read_to_string(filepath).expect("Couldn't read file.");
 
     match lexer::tokenize(file_content) {
-        Some(tokens) => lexer::print_tokens(&tokens),
+        Some(tokens) => {
+            lexer::print_tokens(&tokens);
+
+            // parsing
+            let mut node = ast::Node::new(ast::NodeType::Program);
+            node.parse(&tokens, 0);
+            println!("{node}");
+        },
+            
         None => panic!("Wow! Can't lex that!"),
     }
+
+    
 }

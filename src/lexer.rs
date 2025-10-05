@@ -14,6 +14,12 @@ pub enum Token {
     Operator(String)
 }
 
+impl PartialEq for Token {
+    fn eq(&self, other: &Self) -> bool {
+        return std::mem::discriminant(self) == std::mem::discriminant(other)
+    }
+}
+
 pub fn tokenize(input: String) -> Option<Vec<Token>> {
     let mut content = input;
 
